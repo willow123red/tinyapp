@@ -33,6 +33,14 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL
+  console.log(shortURL);
+  let longURL = urlDatabase[shortURL];
+  console.log(longURL);
+  res.redirect(longURL);
+});
+
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
