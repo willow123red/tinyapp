@@ -51,7 +51,7 @@ app.post("/urls", (req, res) => {
   console.log(newRandomGeneratedString);
   urlDatabase[newRandomGeneratedString] = req.body.longURL;
   console.log(urlDatabase);  // Log the POST request body to the console
-  res.redirect("/urls/" + newRandomGeneratedString);
+  res.redirect("/urls");
 });
 
 app.get("/urls/new", (req, res) => {
@@ -70,5 +70,11 @@ app.get("/hello", (req, res) => {
 app.post("/urls/:url/delete", (req, res) => {
   let url = req.params.url;
   delete urlDatabase[url];
+  res.redirect("/urls");
+});
+
+app.post("/urls/:url/edit", (req, res) => {
+  let url = req.params.url;
+  urlDatabase[url] = req.body.longURL;
   res.redirect("/urls");
 });

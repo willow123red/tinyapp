@@ -11,7 +11,7 @@
 <body>
     <% include partials/_header %>
     <nav>
-    <a href="#">create new URL</a> 
+    <!-- <a href="#">create new URL</a>  -->
   </nav>
   <main style="margin: 1em;">
     <h3>My URLs</h3>
@@ -28,9 +28,14 @@
               <td><%= url %></td>
               <td><%= urls[url] %></td>
               <td>
-                <form method="POST" action="/urls/<%= url %>/delete">
+              <td><form method="GET" action="/urls/<%= url %>">
+                <button type="submit">edit</button>
+                </form>
+                </td>
+              <td><form method="POST" action="/urls/<%= url %>/delete">
                 <button type="submit">delete</button>
                 </form>
+              </td>  
               </td>
             </tr>
           <% } %>
