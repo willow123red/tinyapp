@@ -4,6 +4,20 @@ const app = express();
 app.use(cookieParser());
 const PORT = 8080; // default port 8080
 
+// Users object
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
 // Generate random string
 function generateRandomString() {
   let result = ' ';
@@ -50,7 +64,6 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     userID: users[req.cookies["userID"]]
   };
-  console.log(req.cookies["userID"])
   res.render("urls_index", templateVars);
 });
 
@@ -100,14 +113,24 @@ app.get("/login", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  let user = checkEmailUsers();
+  const user = getUser(req.body.email, req.body.password);
   if (!user) {
-  res.send("403 Invalid Email");
-  return;
+    return res.send("403 Invalid Email or Password");
   }
-  res.cookie("userID", req.body.email);
+  res.cookie("userID", user.id);
   res.redirect("/urls");
 });
+
+// Function to check email and passwords together
+const getUser = function (email, password) {
+  for (userID in users) {
+    const user = users[userID];
+    if (user.email === email && user.password === password) {
+      return user;
+    }
+  }
+  return null;
+};
 
 app.post("/logout", (req, res) => {
   res.clearCookie("userID");
@@ -153,29 +176,3 @@ const checkEmailUsers = function (email, users) {
   return false;
 };
 checkEmailUsers();
-
-// Function to check password users
-const checkPasswordUsers = function (password, users) {
-  for (user in users) {
-    let databasePassword = users[user]["password"]
-    if (databasePassword === password) {
-      return password;
-    }
-  }
-  return false;
-}
-checkPasswordUsers();
-
-// Users object
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-}
