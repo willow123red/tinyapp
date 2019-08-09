@@ -48,8 +48,10 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = {
+    email: "fake@email.com",
+    // to do replace email with actual email
     urls: urlDatabase,
-    username: req.cookies["username"]
+    userID: req.cookies["userID"]
   };
   res.render("urls_index", templateVars);
 });
@@ -64,14 +66,14 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"]
+    userID: req.cookies["userID"]
   };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
+    userID: req.cookies["userID"],
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]
   }
@@ -95,57 +97,57 @@ app.post("/urls/:url/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  console.log(req.body.username);
+  res.cookie("userID", req.body.userID);
+  console.log(req.body.userID);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("userID");
   res.redirect("/urls");
 });
 
 app.get("/register", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"]
+    userID: req.cookies["userID"]
   };
   res.render("urls_registration", templateVars);
 });
 
-// Generate random user ID
+// Register a user or register errors
 app.post("/register", (req, res) => {
   console.log(req.body);
   if (req.body.email === "" || req.body.password === "") {
     res.send("400 Bad Request");
     return;
   }
-    let validEmail = checkEmailUsers();
-      if (!validEmail) {
+  console.log("poop");
+  let usedEmail = checkEmailUsers(req.body.email, users);
+  if (usedEmail) {
     res.send("400 Bad Request");
     return;
   }
   let newUserID = generateRandomString();
-  res.cookie("username", newUserID);
+  res.cookie("userID", newUserID);
   users[newUserID] = {
     id: newUserID,
     email: req.body.email,
     password: req.body.password
   };
   res.redirect("/urls");
-});
-
-// Check email or passwords for empty strings
-app.post("/register", (req, res) => {
-  console.log(req.body);
+  console.log("shit");
 });
 
 // Function to check email users
 const checkEmailUsers = function (email, users) {
   for (user in users) {
-    if (user[key] === email) {
+    
+    let databaseEmail = users[user]["email"]
+    if (databaseEmail === email) {
       return true;
     }
   }
+  console.log("loop done")
 };
 checkEmailUsers();
 
