@@ -50,6 +50,7 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     userID: users[req.cookies["userID"]]
   };
+  console.log(req.cookies["userID"])
   res.render("urls_index", templateVars);
 });
 
@@ -93,19 +94,24 @@ app.post("/urls/:url/edit", (req, res) => {
 
 app.get("/login", (req, res) => {
   let templateVars = {
-    
+    userID: users[req.cookies["userID"]],
   }
+  res.render("urls_login", templateVars);
 })
 
 app.post("/login", (req, res) => {
-  res.cookie("userID", req.body.userID);
-  console.log(req.body.userID);
+  let user = checkEmailUsers();
+  if (!user) {
+  res.send("403 Invalid Email");
+  return;
+  }
+  res.cookie("userID", req.body.email);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("userID");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.get("/register", (req, res) => {
@@ -133,7 +139,6 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
-  console.log("poopy poop")
   res.redirect("/urls");
 });
 
@@ -142,11 +147,24 @@ const checkEmailUsers = function (email, users) {
   for (user in users) {
     let databaseEmail = users[user]["email"]
     if (databaseEmail === email) {
-      return true;
+      return user;
     }
   }
+  return false;
 };
 checkEmailUsers();
+
+// Function to check password users
+const checkPasswordUsers = function (password, users) {
+  for (user in users) {
+    let databasePassword = users[user]["password"]
+    if (databasePassword === password) {
+      return password;
+    }
+  }
+  return false;
+}
+checkPasswordUsers();
 
 // Users object
 const users = {
