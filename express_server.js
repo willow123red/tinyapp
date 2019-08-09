@@ -40,40 +40,35 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL
-  console.log(shortURL);
   let longURL = urlDatabase[shortURL];
-  console.log(longURL);
   res.redirect(longURL);
 });
 
 app.get("/urls", (req, res) => {
   let templateVars = {
-    email: "fake@email.com",
-    // to do replace email with actual email
+    email: users[req.cookies["userID"]]["email"],
     urls: urlDatabase,
-    userID: req.cookies["userID"]
+    userID: users[req.cookies["userID"]]
   };
   res.render("urls_index", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   let newRandomGeneratedString = generateRandomString();
-  console.log(newRandomGeneratedString);
   urlDatabase[newRandomGeneratedString] = req.body.longURL;
-  console.log(urlDatabase); // Log the POST request body to the console
   res.redirect("/urls");
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    userID: req.cookies["userID"]
+    userID: users[req.cookies["userID"]]
   };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
-    userID: req.cookies["userID"],
+    userID: users[req.cookies["userID"]],
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]
   }
@@ -96,6 +91,12 @@ app.post("/urls/:url/edit", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/login", (req, res) => {
+  let templateVars = {
+    
+  }
+})
+
 app.post("/login", (req, res) => {
   res.cookie("userID", req.body.userID);
   console.log(req.body.userID);
@@ -116,12 +117,10 @@ app.get("/register", (req, res) => {
 
 // Register a user or register errors
 app.post("/register", (req, res) => {
-  console.log(req.body);
   if (req.body.email === "" || req.body.password === "") {
     res.send("400 Bad Request");
     return;
   }
-  console.log("poop");
   let usedEmail = checkEmailUsers(req.body.email, users);
   if (usedEmail) {
     res.send("400 Bad Request");
@@ -134,20 +133,18 @@ app.post("/register", (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
+  console.log("poopy poop")
   res.redirect("/urls");
-  console.log("shit");
 });
 
 // Function to check email users
 const checkEmailUsers = function (email, users) {
   for (user in users) {
-    
     let databaseEmail = users[user]["email"]
     if (databaseEmail === email) {
       return true;
     }
   }
-  console.log("loop done")
 };
 checkEmailUsers();
 
