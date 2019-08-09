@@ -44,7 +44,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  let templateVars = { urls: urlDatabase, username: req.cookies["username"]};
   res.render("urls_index", templateVars);
 });
 
@@ -70,6 +70,8 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+
+
 app.post("/urls/:url/delete", (req, res) => {
   let url = req.params.url;
   delete urlDatabase[url];
@@ -92,3 +94,32 @@ app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.redirect("/urls");
 });
+
+app.get("/register", (req, res) => {
+  let templateVars = { username: req.cookies["username"] };
+  res.render("urls_registration", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  let newUserID = generateRandomString();
+  res.cookie("username", newUserID);
+  users[newUserID] = {
+    id: newUserID,
+    email: req.body.email,
+    password: req.body.password
+  }
+  res.redirect("/urls");
+});
+
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
