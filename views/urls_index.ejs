@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <title>TinyApp</title>
 </head>
 <body>
-    <% include partials/_header %>
-    <nav>
-    <!-- <a href="#">create new URL</a>  -->
-  </nav>
+  <% include partials/_header %>
   <main style="margin: 1em;">
     <h3>My URLs</h3>
     <table class="table">
@@ -20,33 +19,33 @@
         <tr>
           <th scope="col">Short URL</th>
           <th scope="col">Long URL</th>
+          <th scope="col">Edit</th>
+          <th scope="col">Delete</th>
         </tr>
       </thead>
       <tbody>
         <% for(let url in urls) { %>
-            <% if (userID["id"] === urls[url]["userID"]) { %>
-            <tr>
-              <td><%= url %></td>
-              <td><%= urls[url]["longURL"] %></td>
-              <td>
-              <td><form method="GET" action="/urls/<%= url %>">
-                <button type="submit">edit</button>
-                </form>
-                </td>
-              <td><form method="POST" action="/urls/<%= url %>/delete">
-                <button type="submit">delete</button>
-                </form>
-              </td>  
-              </td>
-            </tr>
-          <% } %>
-          <% }; %>
-        </tbody>
-      </table>
-    </main>
-    
-
-
-
-  </body>
-  </html>
+          <% if (userID) { %>
+        <% if (userID["id"] === urls[url]["userID"]) { %>
+        <tr>
+          <td><%= url %></td>
+          <td><%= urls[url]["longURL"] %></td>
+          <td>
+            <form method="GET" action="/urls/<%= url %>">
+              <button type="submit">edit</button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" action="/urls/<%= url %>/delete">
+              <button type="submit">delete</button>
+            </form>
+          </td>
+        </tr>
+        <% } %>
+        <% } %>
+        <% }; %>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

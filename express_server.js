@@ -37,8 +37,14 @@ app.set("view engine", "ejs");
 
 // URL database
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "637hy2" }
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ48lW"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "637hy2"
+  }
 };
 
 app.get("/", (req, res) => {
@@ -53,12 +59,6 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL
-  let longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
-});
-
 app.get("/urls", (req, res) => {
   let templateVars = {
     // email: users[req.cookies["userID"]]["email"],
@@ -69,8 +69,11 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  let newRandomGeneratedString = generateRandomString();
-  urlDatabase[newRandomGeneratedString] = req.body.longURL;
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = {
+    "longURL": req.body.longURL,
+    "userID": req.cookies["userID"]
+  };
   res.redirect("/urls");
 });
 
@@ -83,6 +86,12 @@ app.get("/urls/new", (req, res) => {
   } else {
     res.render("urls_new", templateVars);
   }
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL
+  let longURL = urlDatabase[shortURL].longURL;
+  res.redirect(longURL);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -98,18 +107,33 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+// DELETE
 app.post("/urls/:url/delete", (req, res) => {
-  let url = req.params.url;
-  delete urlDatabase[url];
-  res.redirect("/urls");
+  let user = req.cookies["userId"];
+  if (user) {
+    if (users[user]["id"] === urlDatabase[req.params.url]["userID"]) {
+      let url = req.params.url;
+      delete urlDatabase[url];
+      res.redirect("/urls");
+    }
+  }
+  res.redirect("/login");
 });
 
+// EDIT
 app.post("/urls/:url/edit", (req, res) => {
-  let url = req.params.url;
-  urlDatabase[url] = req.body.longURL;
-  res.redirect("/urls");
+  let user = req.cookies["userID"];
+  if (user) {
+    if (users[user]["id"] === urlDatabase[req.params.url]["userID"]) {
+      let url = req.params.url;
+      urlDatabase[url].longURL = req.body.longURL;
+      res.redirect("/urls");
+    }
+  }
+  res.redirect("/login");
 });
 
+// LOGINS
 app.get("/login", (req, res) => {
   let templateVars = {
     userID: users[req.cookies["userID"]],
