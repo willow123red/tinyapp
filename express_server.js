@@ -6,10 +6,10 @@ const PORT = 8080; // default port 8080
 
 // Users object
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "1234"
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -38,7 +38,7 @@ app.set("view engine", "ejs");
 // URL database
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "aJ48lW" }
+  "9sm5xK": { longURL: "http://www.google.com", userID: "637hy2" }
 };
 
 app.get("/", (req, res) => {

@@ -23,8 +23,8 @@
         </tr>
       </thead>
       <tbody>
-        <% if (userID) { %>
-          <% for(let url in urls) { %>
+        <% for(let url in urls) { %>
+            <% if (userID["id"] === urls[url]["userID"]) { %>
             <tr>
               <td><%= url %></td>
               <td><%= urls[url]["longURL"] %></td>
