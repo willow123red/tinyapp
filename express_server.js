@@ -1,5 +1,8 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
+const password = ("req.body.password");
+const hashedPassword = bcrypt.hashSync(password, 10);
 const app = express();
 app.use(cookieParser());
 const PORT = 8080; // default port 8080
@@ -9,18 +12,18 @@ const users = {
   "aJ48lW": {
     id: "aJ48lW",
     email: "user@example.com",
-    password: "1234"
+    password: bcrypt.hashSync("1234", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("5678", 10)
   }
 };
 
 // Generate random string
 function generateRandomString() {
-  let result = ' ';
+  let result = '';
   let char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   for (let i = 0; i < 6; i++) {
     result += char.charAt(Math.floor(Math.random() * char.length));
@@ -51,14 +54,11 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// HOME page
 app.get("/urls", (req, res) => {
   let templateVars = {
     // email: users[req.cookies["userID"]]["email"],
@@ -77,6 +77,7 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls");
 });
 
+// NEW urls
 app.get("/urls/new", (req, res) => {
   let templateVars = {
     userID: users[req.cookies["userID"]]
@@ -143,6 +144,10 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const user = getUser(req.body.email, req.body.password);
+  //console.log('EMAIL', req.body.email)
+  //console.log("password", req.body.password)
+  //console.log("user:", user);
+  //console.log(users);
   if (!user) {
     return res.send("403 Invalid Email or Password");
   }
@@ -151,10 +156,10 @@ app.post("/login", (req, res) => {
 });
 
 // Function to check email and passwords together
-const getUser = function (email, password) {
-  for (userID in users) {
-    const user = users[userID];
-    if (user.email === email && user.password === password) {
+const getUser = function (email, inputPassword) {
+  for (let uid in users) {
+    const user = users[uid];
+      if (user.email === email && bcrypt.compareSync(inputPassword, user.password)) {
       return user;
     }
   }
@@ -189,7 +194,7 @@ app.post("/register", (req, res) => {
   users[newUserID] = {
     id: newUserID,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 10)
   };
   res.redirect("/urls");
 });
@@ -205,3 +210,7 @@ const checkEmailUsers = function (email, users) {
   return false;
 };
 checkEmailUsers();
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
