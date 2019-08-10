@@ -35,9 +35,10 @@ app.use(bodyParser.urlencoded({
 
 app.set("view engine", "ejs");
 
+// URL database
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "aJ48lW" }
 };
 
 app.get("/", (req, res) => {
@@ -60,7 +61,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = {
-    email: users[req.cookies["userID"]]["email"],
+    // email: users[req.cookies["userID"]]["email"],
     urls: urlDatabase,
     userID: users[req.cookies["userID"]]
   };
@@ -77,7 +78,11 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     userID: users[req.cookies["userID"]]
   };
-  res.render("urls_new", templateVars);
+  if (!req.cookies["userID"]) {
+    res.redirect("/login");
+  } else {
+    res.render("urls_new", templateVars);
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
