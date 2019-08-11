@@ -146,7 +146,7 @@ app.post("/login", (req, res) => {
   if (!user) {
     return res.send("403 Invalid Email or Password");
   }
-  req.session["UserID"] = user;
+  req.session["userID"] = user["id"];
   res.redirect("/urls");
 });
 
