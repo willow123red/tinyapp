@@ -2,13 +2,16 @@ const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const {
-  checkEmailUsers
+  checkEmailUsers,
+  generateRandomString
 } = require("./helpers");
+
 const app = express();
 app.use(cookieSession({
   name: "session",
   keys: ["dogWithABone"]
 }));
+
 const PORT = 8080; // default port 8080
 
 // Users object
@@ -23,16 +26,6 @@ const users = {
     email: "user2@example.com",
     password: bcrypt.hashSync("5678", 10)
   }
-};
-
-// Generate random string
-function generateRandomString() {
-  let result = '';
-  let char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 6; i++) {
-    result += char.charAt(Math.floor(Math.random() * char.length));
-  }
-  return result;
 };
 
 const bodyParser = require("body-parser");
@@ -62,7 +55,6 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    // remove users from line 69 and new user won't show their URL's
     userID: users[req.session["userID"]]
   };
   res.render("urls_index", templateVars);
@@ -89,8 +81,9 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+// Short URL
 app.get("/u/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL
+  let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
@@ -103,9 +96,9 @@ app.get("/urls/:shortURL", (req, res) => {
     userID: users[req.session["userID"]],
     shortURL: shortURL,
     longURL: urlObject && urlObject.longURL
-  }
-  res.render("urls_show", templateVars)
-})
+  };
+  res.render("urls_show", templateVars);
+});
 
 // DELETE
 app.post("/urls/:url/delete", (req, res) => {
@@ -137,9 +130,9 @@ app.post("/urls/:url/edit", (req, res) => {
 app.get("/login", (req, res) => {
   let templateVars = {
     userID: users[req.session["userID"]],
-  }
+  };
   res.render("urls_login", templateVars);
-})
+});
 
 app.post("/login", (req, res) => {
   const user = getUser(req.body.email, req.body.password);
@@ -151,7 +144,7 @@ app.post("/login", (req, res) => {
 });
 
 // Function to check email and passwords together
-const getUser = function (email, inputPassword) {
+const getUser = function(email, inputPassword) {
   for (let uid in users) {
     const user = users[uid];
     if (user.email === email && bcrypt.compareSync(inputPassword, user.password)) {
@@ -161,11 +154,7 @@ const getUser = function (email, inputPassword) {
   return null;
 };
 
-app.post("/logout", (req, res) => {
-  req.session = null;
-  res.redirect("/login");
-});
-
+// REGISTER
 app.get("/register", (req, res) => {
   let templateVars = {
     userID: req.session["userID"]
@@ -192,6 +181,12 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+// LOGOUT
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect("/login");
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
-})
+});

@@ -9,6 +9,17 @@ const checkEmailUsers = function(email, users) {
   return undefined;
 };
 
+// Generate random string
+const generateRandomString = function() {
+  let result = '';
+  let char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 6; i++) {
+    result += char.charAt(Math.floor(Math.random() * char.length));
+  }
+  return result;
+};
+
 module.exports = {
   checkEmailUsers,
+  generateRandomString
 };
