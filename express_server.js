@@ -1,6 +1,7 @@
 const express = require("express");
-const cookieSession = require('cookie-session');
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
+const { checkEmailUsers } = require("./helpers");
 const app = express();
 app.use(cookieSession({
   name: "session",
@@ -74,8 +75,11 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = {
     "longURL": req.body.longURL,
     "userID": req.session["userID"]
+
   };
-  res.redirect("/urls");
+  console.log("poooop", urlDatabase);
+  console.log("shit", urlDatabase[shortURL]);
+  res.redirect(`/urls/${shortURL}`);
 });
 
 // NEW urls
@@ -97,10 +101,13 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = {
+  const shortURL = req.params.shortURL;
+  const urlObject = urlDatabase[shortURL];
+    let templateVars = {
+    email: users[req.session.userID].email,
     userID: users[req.session["userID"]],
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
+    shortURL: shortURL,
+    longURL: urlObject && urlObject.longURL
   }
   res.render("urls_show", templateVars)
 })
@@ -116,7 +123,7 @@ app.post("/urls/:url/delete", (req, res) => {
     if (users[user]["id"] === urlDatabase[req.params.url]["userID"]) {
       let url = req.params.url;
       delete urlDatabase[url];
-      res.redirect("/urls");
+      return res.redirect("/urls");
     }
   }
   res.redirect("/login");
@@ -129,7 +136,7 @@ app.post("/urls/:url/edit", (req, res) => {
     if (users[user]["id"] === urlDatabase[req.params.url]["userID"]) {
       let url = req.params.url;
       urlDatabase[url].longURL = req.body.longURL;
-      res.redirect("/urls");
+      return res.redirect("/urls");
     }
   }
   res.redirect("/login");
@@ -149,7 +156,7 @@ app.post("/login", (req, res) => {
     return res.send("403 Invalid Email or Password");
   }
   req.session["UserID"] = user;
-  console.log("POOOOOOOOOOOOOP");
+  // console.log("POOOOOOOOOOOOOP");
   res.redirect("/urls");
 });
 
@@ -179,13 +186,11 @@ app.get("/register", (req, res) => {
 // Register a user or register errors
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
-    res.send("400 Bad Request");
-    return;
+    return res.send("400 Bad Request");
   }
   let usedEmail = checkEmailUsers(req.body.email, users);
   if (usedEmail) {
-    res.send("400 Bad Request");
-    return;
+    return res.send("400 Bad Request");
   }
   const newUserID = generateRandomString();
   users[newUserID] = {
@@ -197,18 +202,7 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-// Function to check email users
-const checkEmailUsers = function (email, users) {
-  for (user in users) {
-    let databaseEmail = users[user]["email"]
-    if (databaseEmail === email) {
-      return user;
-    }
-  }
-  return false;
-};
-checkEmailUsers();
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
