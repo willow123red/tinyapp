@@ -1,13 +1,18 @@
 const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
-const { checkEmailUsers } = require("./helpers");
+const PORT = 8080; // default port 8080
+
+const {
+  checkEmailUsers,
+  generateRandomString
+} = require("./helpers");
+
 const app = express();
 app.use(cookieSession({
   name: "session",
   keys: ["dogWithABone"]
 }));
-const PORT = 8080; // default port 8080
 
 // Users object
 const users = {
@@ -21,16 +26,6 @@ const users = {
     email: "user2@example.com",
     password: bcrypt.hashSync("5678", 10)
   }
-};
-
-// Generate random string
-function generateRandomString() {
-  let result = '';
-  let char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 6; i++) {
-    result += char.charAt(Math.floor(Math.random() * char.length));
-  }
-  return result;
 };
 
 const bodyParser = require("body-parser");
@@ -52,10 +47,6 @@ const urlDatabase = {
   }
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -63,9 +54,8 @@ app.get("/urls.json", (req, res) => {
 // HOME page
 app.get("/urls", (req, res) => {
   let templateVars = {
-    // email: users[req.cookies["userID"]]["email"],
     urls: urlDatabase,
-    userID: users[req.session["userID"]]
+    userID: req.session["userID"]
   };
   res.render("urls_index", templateVars);
 });
@@ -75,12 +65,64 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = {
     "longURL": req.body.longURL,
     "userID": req.session["userID"]
-
   };
-  console.log("poooop", urlDatabase);
-  console.log("shit", urlDatabase[shortURL]);
   res.redirect(`/urls/${shortURL}`);
 });
+
+// Register a user or register errors
+app.get("/register", (req, res) => {
+  let templateVars = {
+    userID: req.session["userID"]
+  };
+  res.render("urls_registration", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    return res.send("400 Bad Request");
+  }
+  let usedEmail = checkEmailUsers(req.body.email, users);
+  if (usedEmail) {
+    return res.send("400 Bad Request");
+  }
+  const newUserID = generateRandomString();
+  users[newUserID] = {
+    id: newUserID,
+    email: req.body.email,
+    password: bcrypt.hashSync(req.body.password, 10)
+  };
+  req.session["userID"] = newUserID;
+  res.redirect("/urls");
+});
+
+// LOGINS
+app.get("/login", (req, res) => {
+  let templateVars = {
+    userID: users[req.session["userID"]],
+  };
+  res.render("urls_login", templateVars);
+});
+
+app.post("/login", (req, res) => {
+  const user = getUser(req.body.email, req.body.password);
+  if (!user) {
+    return res.send("403 Invalid Email or Password");
+  }
+  req.session["userID"] = user;
+  // console.log("POOOOOOOOOOOOOP");
+  res.redirect("/urls");
+});
+
+// Function to check email and passwords together for login with cookie session
+const getUser = function (email, inputPassword) {
+  for (let uid in users) {
+    const user = users[uid];
+    if (user.email === email && bcrypt.compareSync(inputPassword, user.password)) {
+      return user;
+    }
+  }
+  return null;
+};
 
 // NEW urls
 app.get("/urls/new", (req, res) => {
@@ -94,8 +136,9 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+// ShortURL
 app.get("/u/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL
+  let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
@@ -103,17 +146,13 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const urlObject = urlDatabase[shortURL];
-    let templateVars = {
+  let templateVars = {
     email: users[req.session.userID].email,
     userID: users[req.session["userID"]],
     shortURL: shortURL,
     longURL: urlObject && urlObject.longURL
-  }
-  res.render("urls_show", templateVars)
-})
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  };
+  res.render("urls_show", templateVars);
 });
 
 // DELETE
@@ -142,67 +181,12 @@ app.post("/urls/:url/edit", (req, res) => {
   res.redirect("/login");
 });
 
-// LOGINS
-app.get("/login", (req, res) => {
-  let templateVars = {
-    userID: users[req.session["userID"]],
-  }
-  res.render("urls_login", templateVars);
-})
-
-app.post("/login", (req, res) => {
-  const user = getUser(req.body.email, req.body.password);
-  if (!user) {
-    return res.send("403 Invalid Email or Password");
-  }
-  req.session["UserID"] = user;
-  // console.log("POOOOOOOOOOOOOP");
-  res.redirect("/urls");
-});
-
-// Function to check email and passwords together
-const getUser = function (email, inputPassword) {
-  for (let uid in users) {
-    const user = users[uid];
-    if (user.email === email && bcrypt.compareSync(inputPassword, user.password)) {
-      return user;
-    }
-  }
-  return null;
-};
-
+//Logout
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/login");
 });
 
-app.get("/register", (req, res) => {
-  let templateVars = {
-    userID: req.session["userID"]
-  };
-  res.render("urls_registration", templateVars);
-});
-
-// Register a user or register errors
-app.post("/register", (req, res) => {
-  if (req.body.email === "" || req.body.password === "") {
-    return res.send("400 Bad Request");
-  }
-  let usedEmail = checkEmailUsers(req.body.email, users);
-  if (usedEmail) {
-    return res.send("400 Bad Request");
-  }
-  const newUserID = generateRandomString();
-  users[newUserID] = {
-    id: newUserID,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 10)
-  };
-  req.session["userID"] = newUserID;
-  res.redirect("/urls");
-});
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-

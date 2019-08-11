@@ -1,16 +1,20 @@
-const { assert } = require('chai');
+const {
+  assert
+} = require('chai');
 
-const { checkEmailUsers } = require('../helpers.js');
+const {
+  checkEmailUsers
+} = require('../helpers.js');
 
 const testUsers = {
   "aJ48lW": {
-    id: "aJ48lW", 
-    email: "user@example.com", 
+    id: "aJ48lW",
+    email: "user@example.com",
     password: "1234"
   },
   "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "5678"
   }
 };
@@ -27,5 +31,5 @@ describe('getUserByEmail', function() {
     const user = checkEmailUsers("humptydumpty@wall.com", testUsers);
     const expectedOutput = undefined;
     assert.equal(user, expectedOutput);
-  })
+  });
 });
